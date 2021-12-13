@@ -7,7 +7,9 @@
             "args": [],
             "options": {
                 "cwd": "${workspaceFolder}/part_a"
-            }
+            },
+            "problemMatcher": [
+            ]
         },
         {
             "type": "cppbuild",
