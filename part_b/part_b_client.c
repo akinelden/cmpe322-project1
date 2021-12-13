@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	char* result = call_server(server, blackbox, first, second);
 
 	// open the output file and write content to it
-	FILE *fp = fopen(outputPath, "w+");
+	FILE *fp = fopen(outputPath, "a");
 	fprintf(fp, "%s", result);
 	fclose(fp);
 
