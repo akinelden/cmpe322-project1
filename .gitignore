@@ -1,4 +1,13 @@
-*.out
+# text files
 *.txt
 *.log
+
+# executable and link files
+*.out
+*.o
 blackbox
+
+# rpc generated files
+*_clnt.c
+*_svc.c
+*_xdr.c
