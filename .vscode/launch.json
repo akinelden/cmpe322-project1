@@ -45,6 +45,47 @@
             ],
             "preLaunchTask": "build part_a",
             "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug PartB Server",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/part_b/box_call_server",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/part_b",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build part_b",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug PartB Client",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/part_b/box_call_client",
+            "args": ["./blackbox", "./part_b_out.txt", "localhost"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/part_b",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
         }
     ]
 }
