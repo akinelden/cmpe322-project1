@@ -4,20 +4,151 @@
  * as a guideline for developing your own functions.
  */
 
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
 #include "box_call.h"
 
-// int *
-char **
-call_blackbox_1_svc(inputs *argp, struct svc_req *rqstp)
+// In order to avoid mistakes, first define constants for pipe ends
+#define READ_END 0
+#define WRITE_END 1
+
+// also define the buffer size to be used while reading from pipe
+#define BUFFER_SIZE 1024
+
+// actions taken by the child(blackbox) process
+void child_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], char *blackbox)
 {
-	static char * result;
-	// static int result;
+	// bind read end of the inputPipe to stdin, exit if an error occurs
+	if (dup2(inputPipe[READ_END], STDIN_FILENO) < 0)
+		exit(-1);
 
-	printf("File: %s\n", argp->blackbox);
-	printf("Input1: %d\n", argp->first);
-	printf("Input2: %d\n", argp->second);
+	// bind write end of the outputPipe to stdout, exit if an error occurs
+	if (dup2(outputPipe[WRITE_END], STDOUT_FILENO) < 0)
+		exit(-1);
 
-	result = "This is done\nAnd this is yes done\n";
-	// result = 2;
-	return &result;
+	// bind write end of the errorPipe to stderr, exit if an error occurs
+	if (dup2(errorPipe[WRITE_END], STDERR_FILENO) < 0)
+		exit(-1);
+
+	// close the unused ends of pipes
+	close(inputPipe[WRITE_END]);
+	close(outputPipe[READ_END]);
+	close(errorPipe[READ_END]);
+
+	// binding is completed, load the blackbox and let it do the magic
+	if (execl(blackbox, blackbox, NULL) < 0)
+	{
+		exit(-1);
+	}
+}
+
+// actions taken by parent process
+char** parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], inputs *parameters)
+{
+	// the result string to be returned
+	char **result = (char**) malloc(sizeof(char*));
+
+    // close the read end of input and write end of output/error pipes
+    close(inputPipe[READ_END]);
+    close(outputPipe[WRITE_END]);
+    close(errorPipe[WRITE_END]);
+
+    // combine two integer parameters in a single string
+    char input[BUFFER_SIZE];
+	sprintf(input, "%d %d\n", parameters->first, parameters->second);
+
+    // try to write to inputPipe, if cannot write exit with -1
+    if (write(inputPipe[WRITE_END], input, BUFFER_SIZE) <= 0)
+        exit(-1);
+
+    // wait for child process to finish its job and get the return status
+    int status;
+    wait(&status);
+
+    // if the exit status of child is not 0, then an error occurred
+    int normalExit = 0;
+    if (WIFEXITED(status))
+    {
+        int exitStatus = WEXITSTATUS(status);
+        normalExit = exitStatus == 0;
+    }
+
+    if (normalExit) // if child terminated normally, read from outputPipe (stdout)
+    {
+        char buff[BUFFER_SIZE]; // the buffer to read from pipe
+        // try to read the result from outputPipe
+        if (read(outputPipe[READ_END], buff, sizeof(buff)) > 0)
+        {
+            // if successfully read, convert response to integer
+			int resp = atoi(buff);
+			// first add SUCCESS then response to the result string
+            sprintf(*result, "SUCCESS:\n%d\n", resp);
+        }
+        else // if couldn't read, it means something is wrong, return -1
+            exit(-1);
+    }
+    else // if not a normal exit, then read from errorPipe (stderr)
+    {
+        // use a string and accumulate pipe data inside it
+        char* errorMsg = "";
+        while (1)
+        {
+            // initialize a string and try to read from errorPipe
+            char msg[BUFFER_SIZE];
+            int nRead; // number of bytes read from pipe
+            nRead = read(errorPipe[READ_END], msg, BUFFER_SIZE);
+            if (nRead > 0) // if some content is read, add it to errorMsg
+            {
+				// keep old data in another pointer
+				char* old = errorMsg;
+				// allocate a bigger char array
+				errorMsg = malloc(strlen(errorMsg) + BUFFER_SIZE + 1);
+				// copy the old content and concat new content
+				strcpy(errorMsg, old);
+				strcat(errorMsg, msg);
+                if (nRead < BUFFER_SIZE) // it means all content is read from pipe
+                    break;
+            }
+            else // otherwise complete content is read, break the loop
+                break;
+        }
+
+        if (strlen(errorMsg) > 0) // if some message is read, write it to result string
+        {
+			sprintf(*result, "FAIL:\n%s\n", errorMsg);
+        }
+        else // if no data is read, something is wrong return -1
+            exit(-1);
+    }
+
+    // close pipes and return result
+    close(inputPipe[WRITE_END]);
+    close(outputPipe[READ_END]);
+    close(errorPipe[READ_END]);
+    return result;
+}
+
+// this function is called by the client request, main activity is here
+char **call_blackbox_1_svc(inputs *argp, struct svc_req *rqstp)
+{
+	// Three pipes are required:
+    int inputPipe[2];  // For sending the input data to child process. WRITE: parent, READ: child
+    int outputPipe[2]; // For receiving the output from child process. WRITE: child, READ: parent
+    int errorPipe[2];  // For receiving error message from child process. WRITE: child, READ: parent
+
+    // try to open the pipes, if an error occurs, exit
+    if (pipe(inputPipe) < 0 || pipe(outputPipe) < 0 || pipe(errorPipe) < 0)
+        exit(-1);
+
+    int pid = fork();
+    if (pid == 0) // child process actions
+    {
+        child_process(inputPipe, outputPipe, errorPipe, argp->blackbox);
+    }
+    else // parent process actions
+    {
+		return parent_process(inputPipe, outputPipe, errorPipe, argp);
+    }
+	return NULL;
 }
