@@ -48,6 +48,7 @@ char** parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], inp
 {
 	// the result string to be returned
 	char **result = (char**) malloc(sizeof(char*));
+    *result = (char*) malloc(sizeof(char)*BUFFER_SIZE);
 
     // close the read end of input and write end of output/error pipes
     close(inputPipe[READ_END]);
@@ -90,36 +91,19 @@ char** parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], inp
     }
     else // if not a normal exit, then read from errorPipe (stderr)
     {
-        // use a string and accumulate pipe data inside it
-        char* errorMsg = "";
-        while (1)
-        {
             // initialize a string and try to read from errorPipe
             char msg[BUFFER_SIZE];
-            int nRead; // number of bytes read from pipe
-            nRead = read(errorPipe[READ_END], msg, BUFFER_SIZE);
-            if (nRead > 0) // if some content is read, add it to errorMsg
+            if (read(errorPipe[READ_END], msg, BUFFER_SIZE) > 0) // if some content is read, set result to it
             {
-				// keep old data in another pointer
-				char* old = errorMsg;
-				// allocate a bigger char array
-				errorMsg = malloc(strlen(errorMsg) + BUFFER_SIZE + 1);
-				// copy the old content and concat new content
-				strcpy(errorMsg, old);
-				strcat(errorMsg, msg);
-                if (nRead < BUFFER_SIZE) // it means all content is read from pipe
-                    break;
+                char* format; // format string to be used for fail message
+                if (msg[strlen(msg)-1] == '\n') // if the message ends with newline, don't add newline to format string
+                    format = "FAIL:\n%s";
+                else
+                    format = "FAIL:\n%s\n";
+                sprintf(*result, format, msg);
             }
-            else // otherwise complete content is read, break the loop
-                break;
-        }
-
-        if (strlen(errorMsg) > 0) // if some message is read, write it to result string
-        {
-			sprintf(*result, "FAIL:\n%s\n", errorMsg);
-        }
-        else // if no data is read, something is wrong return -1
-            exit(-1);
+            else // otherwise no data is read, exit with -1
+                exit(-1);
     }
 
     // close pipes and return result
