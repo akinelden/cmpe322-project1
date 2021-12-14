@@ -50,7 +50,7 @@
             "name": "Debug PartB Server",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/part_b/box_call_server.out",
+            "program": "${workspaceFolder}/part_b/part_b_server.out",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/part_b",
@@ -75,6 +75,67 @@
             "args": ["./blackbox", "./part_b_out.txt", "localhost"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/part_b",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug PartC Server",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/part_c/part_c_server.out",
+            "args": ["localhost", "2021"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/part_c",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build part_c",
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug PartC Client",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/part_c/part_c_client.out",
+            "args": ["./blackbox", "./part_c_out.txt", "localhost"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/part_c",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "miDebuggerPath": "/usr/bin/gdb"
+        },
+        {
+            "name": "Debug PartC Logger",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/part_c/part_c_logger.out",
+            "args": ["./logger.log", "2021"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/part_c",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",

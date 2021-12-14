@@ -23,6 +23,17 @@
             ]
         },
         {
+            "type": "process",
+            "label": "build part_c",
+            "command": "/usr/bin/make",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/part_c"
+            },
+            "problemMatcher": [
+            ]
+        },
+        {
             "type": "cppbuild",
             "label": "C/C++: g++ build active file",
             "command": "/usr/bin/g++",
