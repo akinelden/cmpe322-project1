@@ -4,7 +4,7 @@
 # Parameters
 
 CLIENT = part_b_client
-SERVER = box_call_server
+SERVER = part_b_server
 
 SOURCES_CLNT.c = 
 SOURCES_CLNT.h = 
