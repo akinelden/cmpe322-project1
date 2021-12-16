@@ -1,3 +1,16 @@
+// The project aims to execute four programs and communicate between them.
+// The server and blackbox programs communicate through pipes, the server 
+// and client applications communicate with RPC protocol and the server
+// and logger programs communicate through TCP connection.
+//
+// The logger program takes two arguments from terminal, log file path and port.
+// It creates a socket and binds the socket to given port. Then it starts to listen
+// the requests. When a message arrives through socket, it reads the message, 
+// writes its content to log file and sends back an "ok" message to inform the sender
+// that message has arrived. Then continues to listen incoming requests.
+//
+// @author: Mehmet Akın Elden
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -7,7 +20,6 @@
 
 // define max buffer size and tcp packet size
 #define BUFFER_SIZE 1024
-#define PACKET_SIZE 256
 
 // define tcp queue size
 #define QUEUE_SIZE 10
@@ -16,10 +28,13 @@
 void log_request(int clSockt, char* logfile)
 {
     // initialize a buffer with packet size
-    char msg[PACKET_SIZE];
+    char msg[BUFFER_SIZE] = {};
 
     // read from socket a maximum of packet size bytes
-    read(clSockt, msg, PACKET_SIZE);
+    read(clSockt, msg, BUFFER_SIZE);
+
+    // return an ok message to client socket so that it know transaction over
+    write(clSockt, "ok", sizeof("ok"));
 
     // if no content is read, return
     if (strlen(msg) == 0)
@@ -27,7 +42,7 @@ void log_request(int clSockt, char* logfile)
     
     // open the log file, write the message in it and close
 	FILE *fp = fopen(logfile, "a");
-	fprintf(fp, "%s", msg);
+	fprintf(fp, "%s\n", msg);
 	fclose(fp);
 }
 
@@ -71,7 +86,8 @@ int main(int argc, char *argv[])
     // now accept the connections in a loop
     while(1)
     {
-        int cl_sockt = accept(sockt, (struct sockaddr*)&client_addr, sizeof(client_addr));
+        int addr_size = sizeof(client_addr);
+        int cl_sockt = accept(sockt, (struct sockaddr*)&client_addr, &addr_size);
         if (cl_sockt < 0) // if cannot accept, continue to try
             continue;
         // process the request in a function
