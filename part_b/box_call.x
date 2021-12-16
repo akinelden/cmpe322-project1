@@ -1,14 +1,12 @@
 /*
- * How to save, compile, and run:
- * sudo apt install rpcinfo // to use rpcinfo, run once
- * Save file with .x extension.
- *
- * rpcgen -C add.x // -C for creating all the files, generate code in ANSI C.
- * rpcgen -a add.x // -a generate all the files including sample code for client and server side.
- * make -f Makefile.add // -f to use given file as a makefile.
+ * This file is used to generate rpc client and server codes
+ * using rpcgen. There is one input struct and one program call.
  */
 
-/* Specify the arguments */
+/* 
+ * The input is struct, it includes a string for blackbox path,
+ * and two integers for the inputs to blackbox
+ */
 struct inputs{
     string blackbox<1024>;
 	int first;
@@ -16,10 +14,9 @@ struct inputs{
 };
 
 /* 
- * 1. Name the program and give it a unique number.
- * 2. Specify the version of the program.
- * 3. Specify the signature of the program.
-*/
+ * The program call takes inputs struct and returns a string
+ * which is the result of the blackbox call.
+ */
 program BLACKBOX_CALL{
 	version CALL_VERSION{
 		/* Takes a numbers structure and gives the integer result. */

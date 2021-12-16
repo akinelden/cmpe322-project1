@@ -1,3 +1,9 @@
+// The project aims to communicate with a child process through pipes.
+// stdin, stdout and stderr of the child process are binded with three pipes
+// and parent process sends inputs and takes outputs through corresponding pipes.
+//
+// @author: Mehmet Akın Elden
+
 #include <unistd.h>
 #include <sys/wait.h>
 #include <iostream>
@@ -13,7 +19,13 @@ using namespace std;
 // also define the buffer size to be used while reading from pipe
 #define BUFFER_SIZE 1024
 
-// actions taken by the child(blackbox) process
+// actions taken by the child(blackbox) process: pipes are binded to stdin,
+// stdout and stderr. Unused ends of the pipes are closed, and the blackbox program
+// is loaded.
+//  inputPipe: the pipe which will be binded to stdin of the process
+//  outputPipe: the pipe which will be binded to stdout of the process
+//  errorPipe: the pipe which will be binded to stderr of the process
+//  blackbox: the path of the blackbox executable
 int child_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], string &blackbox)
 {
     // bind read end of the inputPipe to stdin, exit if an error occurs
@@ -42,8 +54,16 @@ int child_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], string 
     return 0;
 }
 
-// actions taken by parent process
-int parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], string &blackbox, string &outputPath)
+// actions taken by parent process: Unused ends of the pipes are closed,
+// two input integers are taken from user, written to input pipe,
+// and result is read from stdout if child process exits successfully,
+// or result it read from stderr if child exits with error.
+// then the result is written to output file with success or fail status.
+//  inputPipe: the pipe which is binded to stdin of the child process
+//  outputPipe: the pipe which is binded to stdout of the child process
+//  errorPipe: the pipe which is binded to stderr of the child process
+//  outputPath: the path of the output file in which the results of the blackbox process is written
+int parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], string &outputPath)
 {
     // close the read end of input and write end of output/error pipes
     close(inputPipe[READ_END]);
@@ -156,6 +176,6 @@ int main(int argc, char *argv[])
     }
     else // parent process actions
     {
-        return parent_process(inputPipe, outputPipe, errorPipe, blackbox, outputPath);
+        return parent_process(inputPipe, outputPipe, errorPipe, outputPath);
     }
 }
