@@ -80,7 +80,7 @@ char** parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], inp
     close(errorPipe[WRITE_END]);
 
     // combine two integer parameters in a single string
-    char input[BUFFER_SIZE];
+    char input[BUFFER_SIZE] = {};
 	sprintf(input, "%d %d\n", parameters->first, parameters->second);
 
     // try to write to inputPipe, if cannot write exit with -1
@@ -101,7 +101,7 @@ char** parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], inp
 
     if (normalExit) // if child terminated normally, read from outputPipe (stdout)
     {
-        char buff[BUFFER_SIZE]; // the buffer to read from pipe
+        char buff[BUFFER_SIZE] = {}; // the buffer to read from pipe
         // try to read the result from outputPipe
         if (read(outputPipe[READ_END], buff, sizeof(buff)) > 0)
         {
@@ -116,7 +116,7 @@ char** parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], inp
     else // if not a normal exit, then read from errorPipe (stderr)
     {
             // initialize a string and try to read from errorPipe
-            char msg[BUFFER_SIZE];
+            char msg[BUFFER_SIZE] = {};
             if (read(errorPipe[READ_END], msg, BUFFER_SIZE) > 0) // if some content is read, set result to it
             {
                 char* format; // format string to be used for fail message

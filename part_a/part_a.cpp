@@ -98,7 +98,7 @@ int parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], string
 
     if (normalExit) // if child terminated normally, read from outputPipe (stdout)
     {
-        char buff[BUFFER_SIZE]; // the buffer to read from pipe
+        char buff[BUFFER_SIZE] = {}; // the buffer to read from pipe
         // try to read the result from outputPipe
         if (read(outputPipe[READ_END], buff, sizeof(buff)) > 0)
         {
@@ -118,7 +118,7 @@ int parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], string
         while (true)
         {
             // initialize a char array and try to read from errorPipe
-            char msg[BUFFER_SIZE];
+            char msg[BUFFER_SIZE] = {};
             int nRead; // number of bytes read from pipe
             nRead = read(errorPipe[READ_END], msg, BUFFER_SIZE);
             if (nRead > 0) // if some content is read, add it to errorMsg
@@ -152,9 +152,11 @@ int parent_process(int inputPipe[2], int outputPipe[2], int errorPipe[2], string
 
 int main(int argc, char *argv[])
 {
-    // 3 parameters are required: current executable, blackbox path, output file path
-    if (argc != 3)
-        return -1;
+    if (argc < 3)
+	{
+		printf("blackbox and outputfile arguments are required.");
+		return -1;
+	}
     // the path of the blackbox executable
     string blackbox = string(argv[1]);
     // the path of the output text
