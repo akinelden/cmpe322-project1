@@ -73,7 +73,10 @@ int main (int argc, char **argv)
 	}
 
 	// they are globally available, set their values
-    strcpy(logger_host, argv[1]);
+	if (strcmp(argv[1], "localhost") == 0)
+		strcpy(logger_host, "127.0.0.1");
+	else
+    	strcpy(logger_host, argv[1]);
     char* port_c = argv[2];
     logger_port = atoi(port_c);
 
