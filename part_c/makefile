@@ -43,7 +43,7 @@ $(SERVER) : $(OBJECTS_SVC)
 	$(LINK.c) -o $(SERVER).out $(OBJECTS_SVC) $(LDLIBS)
 
 $(LOGGER) : $(LOGGER).c
-	gcc -o $(LOGGER).out $(LOGGER).c
+	gcc -g -o $(LOGGER).out $(LOGGER).c
 
  clean:
 	 $(RM) core $(TARGETS) $(OBJECTS_CLNT) $(OBJECTS_SVC) $(CLIENT) $(SERVER)
